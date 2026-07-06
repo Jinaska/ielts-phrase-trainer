@@ -184,6 +184,7 @@
       <div class="feedback" id="quizFb"></div>
       <div class="toolbar" style="margin-top:14px">
         <span>スコア: <span class="score" id="quizScore">0 / 0</span></span>
+        <button class="btn ghost small" id="quizAudioBtn">🔊 自動再生: ON</button>
         <div class="spacer"></div>
         <button class="btn" id="quizNext" style="display:none">次の問題 →</button>
       </div>
@@ -305,7 +306,7 @@ let state = {
   hideLearned: false,
   learned: new Set(),
   deck: [],
-  quiz: { current: null, score: 0, total: 0 },
+  quiz: { current: null, score: 0, total: 0, audio: true },
   search: ""
 };
 
@@ -513,9 +514,14 @@ function answerQuiz(btn, choice) {
   fb.innerHTML = (correct ? "⭕ <b>正解!</b>" : "❌ 残念…正解は <b>" + esc(d.key) + "</b>") +
     `<br>📌 ${esc(d.en)}<br>📝 <i>${esc(d.ex)}</i> <button class="speak" data-say="${esc(d.ex)}" style="width:32px;height:32px;font-size:.9rem">🔊</button><br>${esc(d.exJa)}`;
   document.getElementById("quizNext").style.display = "inline-block";
-  speak(d.ex);
+  if (state.quiz.audio) speak(d.ex);
 }
 document.getElementById("quizNext").onclick = newQuiz;
+document.getElementById("quizAudioBtn").onclick = function() {
+  state.quiz.audio = !state.quiz.audio;
+  this.textContent = "🔊 自動再生: " + (state.quiz.audio ? "ON" : "OFF");
+  if (!state.quiz.audio && "speechSynthesis" in window) speechSynthesis.cancel();
+};
 
 // ---------- List ----------
 function renderList() {
