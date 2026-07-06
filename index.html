@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IELTS Phrase Trainer — Band 6-8</title>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --ink: #1e2a3a;
+    --sub: #64748b;
+    --accent: #4f46e5;
+    --accent2: #7c3aed;
+    --green: #059669;
+    --red: #dc2626;
+    --b6: #0ea5e9;
+    --b7: #8b5cf6;
+    --b8: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic", -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--ink); min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; padding: 20px 16px 14px; text-align: center;
+  }
+  header h1 { font-size: 1.25rem; letter-spacing: .5px; }
+  header p { font-size: .8rem; opacity: .85; margin-top: 4px; }
+  .tabs {
+    display: flex; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    padding: 0 12px 14px;
+  }
+  .tab {
+    border: none; padding: 8px 18px; border-radius: 999px;
+    background: rgba(255,255,255,.18); color: #fff;
+    font-size: .9rem; cursor: pointer; font-weight: 600;
+  }
+  .tab.active { background: #fff; color: var(--accent); }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .chip {
+    border: 1.5px solid #cbd5e1; background: #fff; color: var(--sub);
+    border-radius: 999px; padding: 5px 12px; font-size: .8rem;
+    cursor: pointer; font-weight: 600;
+  }
+  .chip.on { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .chip.band.on { border-color: var(--accent2); background: var(--accent2); }
+  .toolbar { display: flex; align-items: center; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+  .toolbar .spacer { flex: 1; }
+  .btn {
+    border: none; border-radius: 10px; padding: 9px 16px; font-size: .9rem;
+    font-weight: 700; cursor: pointer; background: var(--accent); color: #fff;
+  }
+  .btn.ghost { background: #e2e8f0; color: var(--ink); }
+  .btn.small { padding: 6px 12px; font-size: .8rem; }
+  .count { font-size: .8rem; color: var(--sub); }
+
+  /* Flashcard */
+  .cardwrap { perspective: 1200px; margin: 12px 0; }
+  .fcard {
+    position: relative; width: 100%; min-height: 300px;
+    transform-style: preserve-3d; transition: transform .45s; cursor: pointer;
+  }
+  .fcard.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    background: var(--card); border-radius: 18px;
+    box-shadow: 0 6px 24px rgba(30,42,58,.10);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 28px 22px; text-align: center; gap: 12px;
+  }
+  .face.back { transform: rotateY(180deg); }
+  .face .phrase { font-size: 1.35rem; font-weight: 700; line-height: 1.5; }
+  .face .ja { font-size: 1.1rem; color: var(--ink); line-height: 1.6; }
+  .face .example { font-size: .95rem; color: var(--sub); line-height: 1.6; border-top: 1px dashed #cbd5e1; padding-top: 10px; }
+  .face .hint { position: absolute; bottom: 10px; font-size: .72rem; color: #94a3b8; }
+  .meta { display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .badge { font-size: .7rem; font-weight: 800; color: #fff; border-radius: 6px; padding: 3px 8px; }
+  .badge.b6 { background: var(--b6); } .badge.b7 { background: var(--b7); } .badge.b8 { background: var(--b8); }
+  .badge.sec { background: #475569; }
+  .speak {
+    border: none; background: #eef2ff; color: var(--accent);
+    border-radius: 999px; width: 40px; height: 40px; font-size: 1.1rem; cursor: pointer;
+  }
+  .speak:active { background: var(--accent); color: #fff; }
+  .nav { display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 4px; }
+  .learned-btn { background: var(--green); }
+
+  /* Quiz */
+  .quizcard {
+    background: var(--card); border-radius: 18px; padding: 26px 22px;
+    box-shadow: 0 6px 24px rgba(30,42,58,.10); margin: 12px 0;
+  }
+  .quizcard .q { font-size: 1.2rem; font-weight: 700; line-height: 1.7; margin: 10px 0 4px; }
+  .quizcard .qja { color: var(--sub); font-size: .95rem; margin-bottom: 14px; }
+  .opts { display: grid; gap: 8px; }
+  .opt {
+    border: 2px solid #e2e8f0; background: #fff; border-radius: 12px;
+    padding: 11px 14px; font-size: 1rem; cursor: pointer; text-align: left; font-weight: 600;
+  }
+  .opt:hover { border-color: var(--accent); }
+  .opt.correct { border-color: var(--green); background: #ecfdf5; }
+  .opt.wrong { border-color: var(--red); background: #fef2f2; }
+  .opt:disabled { cursor: default; }
+  .feedback { margin-top: 12px; font-size: .95rem; line-height: 1.6; display: none; }
+  .score { font-weight: 800; color: var(--accent); }
+
+  /* List */
+  .search {
+    width: 100%; padding: 11px 14px; border-radius: 12px;
+    border: 1.5px solid #cbd5e1; font-size: .95rem; margin-bottom: 12px;
+  }
+  .item {
+    background: var(--card); border-radius: 14px; padding: 14px 16px;
+    box-shadow: 0 2px 10px rgba(30,42,58,.06); margin-bottom: 10px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .item .body { flex: 1; }
+  .item .en { font-weight: 700; font-size: 1rem; line-height: 1.5; }
+  .item .jp { color: var(--sub); font-size: .88rem; margin-top: 3px; line-height: 1.5; }
+  .item .exm { font-size: .84rem; color: #94a3b8; margin-top: 6px; line-height: 1.5; font-style: italic; }
+  .empty { text-align: center; color: var(--sub); padding: 30px 0; }
+  .rate-label { font-size: .78rem; color: var(--sub); display: flex; align-items: center; gap: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎯 IELTS Phrase Trainer</h1>
+  <p>Band 6–8 · Writing &amp; Speaking · タップで音声再生 🔊</p>
+</header>
+<div class="tabs">
+  <button class="tab active" data-view="cards">📇 カード</button>
+  <button class="tab" data-view="quiz">✏️ クイズ</button>
+  <button class="tab" data-view="list">📚 一覧</button>
+</div>
+
+<main>
+  <div class="filters" id="secFilters"></div>
+  <div class="filters" id="bandFilters"></div>
+  <div class="toolbar">
+    <span class="count" id="countLabel"></span>
+    <div class="spacer"></div>
+    <label class="rate-label">🔊速度
+      <select id="rate">
+        <option value="0.75">ゆっくり</option>
+        <option value="0.95" selected>ふつう</option>
+        <option value="1.1">速め</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- Flashcards -->
+  <section id="view-cards">
+    <div class="toolbar">
+      <button class="btn ghost small" id="dirBtn">🔁 英語 → 日本語</button>
+      <button class="btn ghost small" id="shuffleBtn">🎲 シャッフル</button>
+      <button class="btn ghost small" id="hideLearnedBtn">👁 覚えたを隠す: OFF</button>
+    </div>
+    <div class="cardwrap">
+      <div class="fcard" id="fcard">
+        <div class="face front" id="faceFront"></div>
+        <div class="face back" id="faceBack"></div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn ghost" id="prevBtn">← 前へ</button>
+      <button class="btn learned-btn" id="learnedBtn">✓ 覚えた</button>
+      <button class="btn" id="nextBtn">次へ →</button>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section id="view-quiz" style="display:none">
+    <div class="quizcard">
+      <div class="meta" id="quizMeta" style="justify-content:flex-start"></div>
+      <div class="q" id="quizQ"></div>
+      <div class="qja" id="quizJa"></div>
+      <div class="opts" id="quizOpts"></div>
+      <div class="feedback" id="quizFb"></div>
+      <div class="toolbar" style="margin-top:14px">
+        <span>スコア: <span class="score" id="quizScore">0 / 0</span></span>
+        <div class="spacer"></div>
+        <button class="btn" id="quizNext" style="display:none">次の問題 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- List -->
+  <section id="view-list" style="display:none">
+    <input class="search" id="searchBox" placeholder="🔍 英語・日本語で検索...">
+    <div id="listBody"></div>
+  </section>
+</main>
+
+<script>
+const SECTIONS = {
+  W1: "Writing Task 1", W2: "Writing Task 2",
+  S1: "Speaking Part 1", S2: "Speaking Part 2", S3: "Speaking Part 3"
+};
+
+const DATA = [
+// ---------- Writing Task 1 ----------
+{sec:"W1",band:6,key:"illustrates",en:"The graph illustrates the changes in ... between ... and ...",ja:"このグラフは〜から〜の間の…の変化を示している",ex:"The graph illustrates the changes in car ownership in Japan between 1990 and 2020.",exJa:"このグラフは1990年から2020年の日本における自動車保有台数の変化を示している。"},
+{sec:"W1",band:6,key:"Overall",en:"Overall, it is clear that ...",ja:"全体として、…ということが明らかである",ex:"Overall, it is clear that renewable energy use increased significantly.",exJa:"全体として、再生可能エネルギーの使用が大幅に増加したことが明らかである。"},
+{sec:"W1",band:6,key:"steadily",en:"... rose steadily throughout the period.",ja:"…は期間を通して着実に増加した",ex:"The number of internet users rose steadily throughout the period.",exJa:"インターネット利用者数は期間を通して着実に増加した。"},
+{sec:"W1",band:7,key:"peaked",en:"... peaked at ... before declining to ...",ja:"…は〜でピークに達し、その後〜まで減少した",ex:"Sales peaked at 500,000 units in 2015 before declining to 300,000 in 2020.",exJa:"売上は2015年に50万台でピークに達し、2020年には30万台まで減少した。"},
+{sec:"W1",band:7,key:"stable",en:"... remained relatively stable at around ...",ja:"…は約〜で比較的安定していた",ex:"The unemployment rate remained relatively stable at around 5%.",exJa:"失業率は約5%で比較的安定していた。"},
+{sec:"W1",band:7,key:"proportion",en:"... accounted for the largest proportion of ...",ja:"…は〜の最大の割合を占めた",ex:"Coal accounted for the largest proportion of energy production.",exJa:"石炭がエネルギー生産の最大の割合を占めた。"},
+{sec:"W1",band:7,key:"fluctuated",en:"... fluctuated between ... and ...",ja:"…は〜と〜の間で変動した",ex:"Prices fluctuated between $20 and $35 during the first quarter.",exJa:"価格は第1四半期に20ドルから35ドルの間で変動した。"},
+{sec:"W1",band:8,key:"surge",en:"... witnessed a dramatic surge",ja:"…は劇的な急増を見せた",ex:"The tourism sector witnessed a dramatic surge after 2021.",exJa:"観光業は2021年以降、劇的な急増を見せた。"},
+{sec:"W1",band:8,key:"stark",en:"In stark contrast, ...",ja:"それとは対照的に…",ex:"In stark contrast, spending on printed books fell sharply.",exJa:"それとは対照的に、紙の書籍への支出は急激に減少した。"},
+{sec:"W1",band:8,key:"threefold",en:"a threefold increase in ...",ja:"…の3倍の増加",ex:"There was a threefold increase in smartphone sales over the decade.",exJa:"この10年間でスマートフォンの売上は3倍に増加した。"},
+{sec:"W1",band:8,key:"outstripped",en:"The figure for X outstripped that for Y.",ja:"Xの数値はYの数値を上回った",ex:"By 2019, the figure for online sales had outstripped that for in-store sales.",exJa:"2019年までに、オンライン販売の数値は店舗販売を上回った。"},
+// ---------- Writing Task 2 ----------
+{sec:"W2",band:6,key:"argued",en:"It is often argued that ...",ja:"…だとしばしば主張される",ex:"It is often argued that technology makes people less sociable.",exJa:"テクノロジーは人々を社交的でなくすると、しばしば主張される。"},
+{sec:"W2",band:6,key:"views",en:"This essay will discuss both views before giving my own opinion.",ja:"本エッセイでは両方の見解を論じた上で、自分の意見を述べる",ex:"This essay will discuss both views of remote work before giving my own opinion.",exJa:"本エッセイではリモートワークに関する両方の見解を論じた上で、自分の意見を述べる。"},
+{sec:"W2",band:6,key:"largely",en:"This is largely due to the fact that ...",ja:"これは主に…という事実による",ex:"This is largely due to the fact that housing costs have risen faster than wages.",exJa:"これは主に、住宅費が賃金よりも速く上昇したという事実による。"},
+{sec:"W2",band:6,key:"illustrate",en:"To illustrate, ...",ja:"例を挙げると…",ex:"To illustrate, Finland's education system emphasizes play over testing.",exJa:"例を挙げると、フィンランドの教育制度はテストよりも遊びを重視している。"},
+{sec:"W2",band:6,key:"outweigh",en:"In conclusion, although ... has certain drawbacks, its benefits outweigh them.",ja:"結論として、…には一定の欠点があるが、その利点が上回る",ex:"In conclusion, although globalization has certain drawbacks, its benefits outweigh them.",exJa:"結論として、グローバル化には一定の欠点があるが、その利点が上回る。"},
+{sec:"W2",band:7,key:"denying",en:"There is no denying that ...",ja:"…であることは否定できない",ex:"There is no denying that social media has transformed communication.",exJa:"ソーシャルメディアがコミュニケーションを変えたことは否定できない。"},
+{sec:"W2",band:7,key:"Proponents",en:"Proponents of ... claim that ...",ja:"…の支持者は〜と主張する",ex:"Proponents of nuclear power claim that it is essential for reducing emissions.",exJa:"原子力の支持者は、排出削減に不可欠だと主張する。"},
+{sec:"W2",band:7,key:"case",en:"A case in point is ...",ja:"その好例が…である",ex:"A case in point is Singapore, where congestion pricing reduced traffic by 20%.",exJa:"その好例がシンガポールで、渋滞課金により交通量が20%減少した。"},
+{sec:"W2",band:7,key:"curb",en:"Governments should implement stricter regulations to curb ...",ja:"政府は…を抑制するために、より厳しい規制を導入すべきだ",ex:"Governments should implement stricter regulations to curb plastic waste.",exJa:"政府はプラスチックごみを抑制するために、より厳しい規制を導入すべきだ。"},
+{sec:"W2",band:8,key:"overlooks",en:"While this argument holds some merit, it overlooks ...",ja:"この主張には一理あるが、…を見落としている",ex:"While this argument holds some merit, it overlooks the social cost of automation.",exJa:"この主張には一理あるが、自動化の社会的コストを見落としている。"},
+{sec:"W2",band:8,key:"ramifications",en:"The ramifications of ... are far-reaching.",ja:"…の影響は広範囲に及ぶ",ex:"The ramifications of climate change are far-reaching, affecting food security worldwide.",exJa:"気候変動の影響は広範囲に及び、世界中の食料安全保障に影響している。"},
+{sec:"W2",band:8,key:"compelling",en:"A compelling argument can be made that ...",ja:"…という説得力のある主張ができる",ex:"A compelling argument can be made that education is the most effective tool against poverty.",exJa:"教育が貧困に対する最も効果的な手段だという、説得力のある主張ができる。"},
+{sec:"W2",band:8,key:"inclined",en:"On balance, I am inclined to believe that ...",ja:"総合的に見て、私は…だと考える",ex:"On balance, I am inclined to believe that the advantages outweigh the disadvantages.",exJa:"総合的に見て、利点が欠点を上回ると私は考える。"},
+{sec:"W2",band:8,key:"stands",en:"It stands to reason that ...",ja:"…というのは理にかなっている",ex:"It stands to reason that investing in public transport reduces car dependency.",exJa:"公共交通への投資が車への依存を減らすというのは理にかなっている。"},
+{sec:"W2",band:8,key:"drastic",en:"Unless drastic measures are taken, ...",ja:"抜本的な対策を講じない限り、…",ex:"Unless drastic measures are taken, urban air quality will continue to deteriorate.",exJa:"抜本的な対策を講じない限り、都市の大気質は悪化し続けるだろう。"},
+// ---------- Speaking Part 1 ----------
+{sec:"S1",band:6,key:"into",en:"I'm really into ...",ja:"…にすごくハマっている",ex:"I'm really into baking these days — it helps me switch off.",exJa:"最近お菓子作りにハマっていて、気分転換になるんです。"},
+{sec:"S1",band:6,key:"depends",en:"It depends on the situation, but usually ...",ja:"状況によるけど、たいていは…",ex:"It depends on the situation, but usually I prefer staying in.",exJa:"状況によりますが、たいていは家にいる方が好きです。"},
+{sec:"S1",band:6,key:"then",en:"every now and then",ja:"時々、たまに",ex:"I go hiking every now and then, maybe once a month.",exJa:"時々ハイキングに行きます。月に1回くらいですね。"},
+{sec:"S1",band:7,key:"honest",en:"To be perfectly honest, ...",ja:"正直に言うと…",ex:"To be perfectly honest, I'm not much of a morning person.",exJa:"正直に言うと、私はあまり朝型ではありません。"},
+{sec:"S1",band:7,key:"keen",en:"I'm not particularly keen on ...",ja:"…はあまり好きではない",ex:"I'm not particularly keen on crowded places.",exJa:"人混みはあまり好きではありません。"},
+{sec:"S1",band:7,key:"unwind",en:"It's a great way to unwind after a long day.",ja:"長い一日の後にリラックスするのに最適な方法だ",ex:"I love listening to jazz — it's a great way to unwind after a long day.",exJa:"ジャズを聴くのが大好きで、長い一日の後にリラックスするのに最適なんです。"},
+{sec:"S1",band:7,key:"think",en:"Now that I think about it, ...",ja:"考えてみると…",ex:"Now that I think about it, I haven't been to the cinema in ages.",exJa:"考えてみると、もう長いこと映画館に行っていません。"},
+{sec:"S1",band:8,key:"enough",en:"I can't get enough of ...",ja:"…が大好きでたまらない",ex:"I can't get enough of Korean dramas at the moment.",exJa:"今、韓国ドラマが大好きでたまらないんです。"},
+// ---------- Speaking Part 2 ----------
+{sec:"S2",band:6,key:"talk",en:"I'd like to talk about ...",ja:"…について話したいと思います",ex:"I'd like to talk about a trip that changed my perspective.",exJa:"私の視野を変えた旅行について話したいと思います。"},
+{sec:"S2",band:6,key:"memorable",en:"It was such a memorable experience that ...",ja:"とても思い出深い経験だったので…",ex:"It was such a memorable experience that I still talk about it today.",exJa:"とても思い出深い経験だったので、今でもその話をします。"},
+{sec:"S2",band:6,key:"pretty",en:"That's pretty much everything I wanted to say.",ja:"話したいことは大体以上です",ex:"...and that's pretty much everything I wanted to say about my hometown.",exJa:"…と、故郷について話したいことは大体以上です。"},
+{sec:"S2",band:7,key:"Looking",en:"Looking back on it now, ...",ja:"今振り返ってみると…",ex:"Looking back on it now, I realize how lucky I was.",exJa:"今振り返ってみると、自分がどれほど幸運だったか分かります。"},
+{sec:"S2",band:7,key:"moon",en:"I was over the moon when ...",ja:"…のとき、天にも昇る気持ちだった",ex:"I was over the moon when I passed the exam on my first attempt.",exJa:"一発で試験に合格したとき、天にも昇る気持ちでした。"},
+{sec:"S2",band:7,key:"short",en:"To cut a long story short, ...",ja:"手短に言うと…",ex:"To cut a long story short, we missed the flight but made unforgettable memories.",exJa:"手短に言うと、飛行機には乗り遅れましたが、忘れられない思い出ができました。"},
+{sec:"S2",band:8,key:"struck",en:"What struck me most was ...",ja:"最も印象に残ったのは…",ex:"What struck me most was how welcoming everyone was.",exJa:"最も印象に残ったのは、皆がとても温かく迎えてくれたことです。"},
+{sec:"S2",band:8,key:"serves",en:"If my memory serves me right, ...",ja:"記憶が正しければ…",ex:"If my memory serves me right, it was the summer of 2018.",exJa:"記憶が正しければ、2018年の夏のことでした。"},
+// ---------- Speaking Part 3 ----------
+{sec:"S3",band:6,key:"suppose",en:"That's an interesting question. I suppose ...",ja:"面白い質問ですね。おそらく…",ex:"That's an interesting question. I suppose it comes down to upbringing.",exJa:"面白い質問ですね。おそらく育ち方の問題に行き着くと思います。"},
+{sec:"S3",band:6,key:"varies",en:"It varies from person to person, but generally speaking ...",ja:"人によるが、一般的に言えば…",ex:"It varies from person to person, but generally speaking, younger people adapt faster.",exJa:"人によりますが、一般的に言えば若い人の方が適応が早いです。"},
+{sec:"S3",band:7,key:"generalize",en:"It's hard to generalize, but in most cases ...",ja:"一概には言えないが、多くの場合…",ex:"It's hard to generalize, but in most cases people value convenience over privacy.",exJa:"一概には言えませんが、多くの場合、人はプライバシーより利便性を重視します。"},
+{sec:"S3",band:7,key:"tendency",en:"There's a growing tendency for people to ...",ja:"人々が…する傾向が強まっている",ex:"There's a growing tendency for people to work remotely.",exJa:"リモートで働く人が増える傾向にあります。"},
+{sec:"S3",band:7,key:"drawbacks",en:"The benefits far outweigh the drawbacks.",ja:"利点が欠点をはるかに上回る",ex:"In my view, the benefits of studying abroad far outweigh the drawbacks.",exJa:"私の考えでは、留学の利点は欠点をはるかに上回ります。"},
+{sec:"S3",band:7,key:"foreseeable",en:"In the foreseeable future, ...",ja:"近い将来…",ex:"In the foreseeable future, I imagine most cars will be electric.",exJa:"近い将来、ほとんどの車は電気自動車になると思います。"},
+{sec:"S3",band:7,key:"matter",en:"I'd say it's a matter of ...",ja:"それは…の問題だと思う",ex:"I'd say it's a matter of priorities rather than money.",exJa:"それはお金というより優先順位の問題だと思います。"},
+{sec:"S3",band:8,key:"standpoint",en:"From a societal standpoint, ...",ja:"社会的な観点から見ると…",ex:"From a societal standpoint, an aging population poses serious challenges.",exJa:"社会的な観点から見ると、高齢化は深刻な課題をもたらします。"},
+{sec:"S3",band:8,key:"sword",en:"It's a double-edged sword.",ja:"それは諸刃の剣だ",ex:"Social media is a double-edged sword — it connects us but also isolates us.",exJa:"ソーシャルメディアは諸刃の剣です。人をつなぐ一方で孤立もさせます。"},
+{sec:"S3",band:8,key:"overlook",en:"That said, we shouldn't overlook ...",ja:"とはいえ、…を見過ごすべきではない",ex:"That said, we shouldn't overlook the risks involved.",exJa:"とはいえ、伴うリスクを見過ごすべきではありません。"}
+];
+
+// ---------- State ----------
+let state = {
+  view: "cards",
+  secs: new Set(Object.keys(SECTIONS)),
+  bands: new Set([6,7,8]),
+  idx: 0,
+  dirEnFirst: true,
+  hideLearned: false,
+  learned: new Set(),
+  deck: [],
+  quiz: { current: null, score: 0, total: 0 },
+  search: ""
+};
+
+// ---------- Speech ----------
+let voice = null;
+function pickVoice() {
+  const vs = speechSynthesis.getVoices().filter(v => v.lang.startsWith("en"));
+  voice = vs.find(v => v.lang === "en-GB" && /female|serena|kate|sonia|stephanie/i.test(v.name))
+       || vs.find(v => v.lang === "en-GB")
+       || vs.find(v => v.lang === "en-US")
+       || vs[0] || null;
+}
+if ("speechSynthesis" in window) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+function speak(text) {
+  if (!("speechSynthesis" in window)) { alert("お使いのブラウザは音声読み上げに対応していません。"); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/\.\.\./g, " something "));
+  if (voice) u.voice = voice;
+  u.lang = voice ? voice.lang : "en-GB";
+  u.rate = parseFloat(document.getElementById("rate").value);
+  speechSynthesis.speak(u);
+}
+
+// ---------- Helpers ----------
+function filtered() {
+  return DATA.filter(d => state.secs.has(d.sec) && state.bands.has(d.band));
+}
+function esc(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function bandBadge(b) { return `<span class="badge b${b}">Band ${b}</span>`; }
+function secBadge(s) { return `<span class="badge sec">${SECTIONS[s]}</span>`; }
+
+// ---------- Filters UI ----------
+function renderFilters() {
+  const sf = document.getElementById("secFilters");
+  sf.innerHTML = "";
+  Object.entries(SECTIONS).forEach(([k, label]) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (state.secs.has(k) ? " on" : "");
+    b.textContent = label;
+    b.onclick = () => {
+      state.secs.has(k) ? state.secs.delete(k) : state.secs.add(k);
+      if (state.secs.size === 0) state.secs.add(k);
+      refresh();
+    };
+    sf.appendChild(b);
+  });
+  const bf = document.getElementById("bandFilters");
+  bf.innerHTML = "";
+  [6,7,8].forEach(bd => {
+    const b = document.createElement("button");
+    b.className = "chip band" + (state.bands.has(bd) ? " on" : "");
+    b.textContent = "Band " + bd;
+    b.onclick = () => {
+      state.bands.has(bd) ? state.bands.delete(bd) : state.bands.add(bd);
+      if (state.bands.size === 0) state.bands.add(bd);
+      refresh();
+    };
+    bf.appendChild(b);
+  });
+}
+
+// ---------- Flashcards ----------
+function buildDeck() {
+  let d = filtered();
+  if (state.hideLearned) d = d.filter(x => !state.learned.has(x.en));
+  state.deck = d;
+  if (state.idx >= d.length) state.idx = 0;
+}
+function renderCard() {
+  buildDeck();
+  const front = document.getElementById("faceFront");
+  const back = document.getElementById("faceBack");
+  const card = document.getElementById("fcard");
+  card.classList.remove("flipped");
+  const label = document.getElementById("countLabel");
+  if (state.deck.length === 0) {
+    front.innerHTML = `<div class="phrase">🎉 全部覚えた!</div><div class="ja">フィルタを変えるか「覚えたを隠す」をOFFにしてね</div>`;
+    back.innerHTML = "";
+    label.textContent = "0件";
+    return;
+  }
+  const d = state.deck[state.idx];
+  label.textContent = `${state.idx + 1} / ${state.deck.length}件` + (state.learned.has(d.en) ? " ✓済" : "");
+  const enSide = `
+    <div class="meta">${secBadge(d.sec)}${bandBadge(d.band)}</div>
+    <div class="phrase">${esc(d.en)}</div>
+    <button class="speak" onclick="event.stopPropagation();speak(${JSON.stringify(d.en)})">🔊</button>
+    <div class="hint">タップして裏面へ</div>`;
+  const jaSide = `
+    <div class="meta">${secBadge(d.sec)}${bandBadge(d.band)}</div>
+    <div class="ja">${esc(d.ja)}</div>
+    <div class="example">📝 ${esc(d.ex)}<br><span style="font-style:normal">${esc(d.exJa)}</span></div>
+    <button class="speak" onclick="event.stopPropagation();speak(${JSON.stringify(d.ex)})">🔊 例文</button>
+    <div class="hint">タップして表面へ</div>`;
+  front.innerHTML = state.dirEnFirst ? enSide : `
+    <div class="meta">${secBadge(d.sec)}${bandBadge(d.band)}</div>
+    <div class="ja">${esc(d.ja)}</div>
+    <div class="hint">英語で言ってみて!タップで答え</div>`;
+  back.innerHTML = state.dirEnFirst ? jaSide : `
+    <div class="meta">${secBadge(d.sec)}${bandBadge(d.band)}</div>
+    <div class="phrase">${esc(d.en)}</div>
+    <div class="example">📝 ${esc(d.ex)}</div>
+    <button class="speak" onclick="event.stopPropagation();speak(${JSON.stringify(d.en + '. ' + d.ex)})">🔊</button>
+    <div class="hint">タップして表面へ</div>`;
+}
+document.getElementById("fcard").onclick = () =>
+  document.getElementById("fcard").classList.toggle("flipped");
+document.getElementById("prevBtn").onclick = () => {
+  if (!state.deck.length) return;
+  state.idx = (state.idx - 1 + state.deck.length) % state.deck.length;
+  renderCard();
+};
+document.getElementById("nextBtn").onclick = () => {
+  if (!state.deck.length) return;
+  state.idx = (state.idx + 1) % state.deck.length;
+  renderCard();
+};
+document.getElementById("learnedBtn").onclick = () => {
+  if (!state.deck.length) return;
+  const d = state.deck[state.idx];
+  state.learned.has(d.en) ? state.learned.delete(d.en) : state.learned.add(d.en);
+  if (state.hideLearned) { buildDeck(); }
+  renderCard();
+};
+document.getElementById("shuffleBtn").onclick = () => {
+  buildDeck();
+  for (let i = DATA.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [DATA[i], DATA[j]] = [DATA[j], DATA[i]];
+  }
+  state.idx = 0;
+  renderCard();
+};
+document.getElementById("dirBtn").onclick = function() {
+  state.dirEnFirst = !state.dirEnFirst;
+  this.textContent = state.dirEnFirst ? "🔁 英語 → 日本語" : "🔁 日本語 → 英語";
+  renderCard();
+};
+document.getElementById("hideLearnedBtn").onclick = function() {
+  state.hideLearned = !state.hideLearned;
+  this.textContent = "👁 覚えたを隠す: " + (state.hideLearned ? "ON" : "OFF");
+  state.idx = 0;
+  renderCard();
+};
+
+// ---------- Quiz ----------
+function newQuiz() {
+  const pool = filtered();
+  const fb = document.getElementById("quizFb");
+  fb.style.display = "none";
+  document.getElementById("quizNext").style.display = "none";
+  if (pool.length < 4) {
+    document.getElementById("quizQ").textContent = "フィルタの範囲が狭すぎます(4件以上必要)。";
+    document.getElementById("quizJa").textContent = "";
+    document.getElementById("quizOpts").innerHTML = "";
+    document.getElementById("quizMeta").innerHTML = "";
+    return;
+  }
+  const d = pool[Math.floor(Math.random() * pool.length)];
+  const others = pool.filter(x => x !== d && x.key.toLowerCase() !== d.key.toLowerCase());
+  const distractors = [];
+  while (distractors.length < 3 && others.length) {
+    const i = Math.floor(Math.random() * others.length);
+    distractors.push(others.splice(i, 1)[0].key);
+  }
+  const opts = [d.key, ...distractors].sort(() => Math.random() - 0.5);
+  state.quiz.current = d;
+  document.getElementById("quizMeta").innerHTML = secBadge(d.sec) + bandBadge(d.band);
+  const re = new RegExp(d.key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+  document.getElementById("quizQ").innerHTML = esc(d.en.replace(re, "______"));
+  document.getElementById("quizJa").textContent = d.ja;
+  const box = document.getElementById("quizOpts");
+  box.innerHTML = "";
+  opts.forEach(o => {
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.textContent = o;
+    b.onclick = () => answerQuiz(b, o);
+    box.appendChild(b);
+  });
+}
+function answerQuiz(btn, choice) {
+  const d = state.quiz.current;
+  const correct = choice.toLowerCase() === d.key.toLowerCase();
+  document.querySelectorAll(".opt").forEach(b => {
+    b.disabled = true;
+    if (b.textContent.toLowerCase() === d.key.toLowerCase()) b.classList.add("correct");
+    else if (b === btn && !correct) b.classList.add("wrong");
+  });
+  state.quiz.total++;
+  if (correct) state.quiz.score++;
+  document.getElementById("quizScore").textContent = `${state.quiz.score} / ${state.quiz.total}`;
+  const fb = document.getElementById("quizFb");
+  fb.style.display = "block";
+  fb.innerHTML = (correct ? "⭕ <b>正解!</b>" : "❌ 残念…正解は <b>" + esc(d.key) + "</b>") +
+    `<br>📌 ${esc(d.en)}<br>📝 <i>${esc(d.ex)}</i><br>${esc(d.exJa)}`;
+  document.getElementById("quizNext").style.display = "inline-block";
+  speak(d.en);
+}
+document.getElementById("quizNext").onclick = newQuiz;
+
+// ---------- List ----------
+function renderList() {
+  const q = state.search.trim().toLowerCase();
+  const items = filtered().filter(d =>
+    !q || d.en.toLowerCase().includes(q) || d.ja.includes(q) ||
+    d.ex.toLowerCase().includes(q) || d.exJa.includes(q)
+  );
+  document.getElementById("countLabel").textContent = items.length + "件";
+  const body = document.getElementById("listBody");
+  if (!items.length) { body.innerHTML = `<div class="empty">該当なし 🤔</div>`; return; }
+  body.innerHTML = items.map(d => `
+    <div class="item">
+      <button class="speak" onclick='speak(${JSON.stringify(d.en + ". " + d.ex)})'>🔊</button>
+      <div class="body">
+        <div class="en">${esc(d.en)} ${bandBadge(d.band)} ${secBadge(d.sec)}</div>
+        <div class="jp">${esc(d.ja)}</div>
+        <div class="exm">${esc(d.ex)}<br>${esc(d.exJa)}</div>
+      </div>
+    </div>`).join("");
+}
+document.getElementById("searchBox").oninput = function() {
+  state.search = this.value;
+  renderList();
+};
+
+// ---------- Tabs & refresh ----------
+document.querySelectorAll(".tab").forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    state.view = t.dataset.view;
+    ["cards","quiz","list"].forEach(v =>
+      document.getElementById("view-" + v).style.display = v === state.view ? "" : "none");
+    refresh();
+  };
+});
+function refresh() {
+  renderFilters();
+  if (state.view === "cards") { state.idx = Math.min(state.idx, Math.max(0, filtered().length - 1)); renderCard(); }
+  else if (state.view === "quiz") newQuiz();
+  else renderList();
+}
+refresh();
+</script>
+</body>
+</html>
