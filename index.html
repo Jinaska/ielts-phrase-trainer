@@ -337,8 +337,13 @@ function filtered() {
   return DATA.filter(d => state.secs.has(d.sec) && state.bands.has(d.band));
 }
 function esc(s) {
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
+// 🔊ボタン共通ハンドラ(カードめくりより先に捕捉)
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-say]");
+  if (b) { e.stopPropagation(); e.preventDefault(); speak(b.dataset.say); }
+}, true);
 function bandBadge(b) { return `<span class="badge b${b}">Band ${b}</span>`; }
 function secBadge(s) { return `<span class="badge sec">${SECTIONS[s]}</span>`; }
 
@@ -397,13 +402,13 @@ function renderCard() {
   const enSide = `
     <div class="meta">${secBadge(d.sec)}${bandBadge(d.band)}</div>
     <div class="phrase">${esc(d.en)}</div>
-    <button class="speak" onclick="event.stopPropagation();speak(${JSON.stringify(d.en)})">🔊</button>
+    <button class="speak" data-say="${esc(d.en)}">🔊</button>
     <div class="hint">タップして裏面へ</div>`;
   const jaSide = `
     <div class="meta">${secBadge(d.sec)}${bandBadge(d.band)}</div>
     <div class="ja">${esc(d.ja)}</div>
     <div class="example">📝 ${esc(d.ex)}<br><span style="font-style:normal">${esc(d.exJa)}</span></div>
-    <button class="speak" onclick="event.stopPropagation();speak(${JSON.stringify(d.ex)})">🔊 例文</button>
+    <button class="speak" data-say="${esc(d.ex)}">🔊 例文</button>
     <div class="hint">タップして表面へ</div>`;
   front.innerHTML = state.dirEnFirst ? enSide : `
     <div class="meta">${secBadge(d.sec)}${bandBadge(d.band)}</div>
@@ -413,7 +418,7 @@ function renderCard() {
     <div class="meta">${secBadge(d.sec)}${bandBadge(d.band)}</div>
     <div class="phrase">${esc(d.en)}</div>
     <div class="example">📝 ${esc(d.ex)}</div>
-    <button class="speak" onclick="event.stopPropagation();speak(${JSON.stringify(d.en + '. ' + d.ex)})">🔊</button>
+    <button class="speak" data-say="${esc(d.en + '. ' + d.ex)}">🔊</button>
     <div class="hint">タップして表面へ</div>`;
 }
 document.getElementById("fcard").onclick = () =>
@@ -506,9 +511,9 @@ function answerQuiz(btn, choice) {
   const fb = document.getElementById("quizFb");
   fb.style.display = "block";
   fb.innerHTML = (correct ? "⭕ <b>正解!</b>" : "❌ 残念…正解は <b>" + esc(d.key) + "</b>") +
-    `<br>📌 ${esc(d.en)}<br>📝 <i>${esc(d.ex)}</i><br>${esc(d.exJa)}`;
+    `<br>📌 ${esc(d.en)}<br>📝 <i>${esc(d.ex)}</i> <button class="speak" data-say="${esc(d.ex)}" style="width:32px;height:32px;font-size:.9rem">🔊</button><br>${esc(d.exJa)}`;
   document.getElementById("quizNext").style.display = "inline-block";
-  speak(d.en);
+  speak(d.ex);
 }
 document.getElementById("quizNext").onclick = newQuiz;
 
@@ -524,7 +529,7 @@ function renderList() {
   if (!items.length) { body.innerHTML = `<div class="empty">該当なし 🤔</div>`; return; }
   body.innerHTML = items.map(d => `
     <div class="item">
-      <button class="speak" onclick='speak(${JSON.stringify(d.en + ". " + d.ex)})'>🔊</button>
+      <button class="speak" data-say="${esc(d.en + '. ' + d.ex)}">🔊</button>
       <div class="body">
         <div class="en">${esc(d.en)} ${bandBadge(d.band)} ${secBadge(d.sec)}</div>
         <div class="jp">${esc(d.ja)}</div>
